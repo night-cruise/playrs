@@ -8,6 +8,7 @@ pub mod cli;
 const REQUEST_URL: &str = "https://play.rust-lang.org/execute";
 
 pub fn run(args: Opt) -> Result<(), Box<dyn std::error::Error>> {
+    let _ = args.validate_args()?;
     let request_body = args.build_request_body()?;
     let response_body = send_request(request_body)?;
     output_response(response_body);
