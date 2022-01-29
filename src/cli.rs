@@ -64,20 +64,20 @@ impl Opt {
 
     pub(crate) fn validate_args(&self) -> Result<(), &'static str> {
         match self.channel.as_str() {
-            "stable" | "nightly" | "beta" => {},
-            _ => return Err("the value of channel can be only stable, nightly or beta")
+            "stable" | "nightly" | "beta" => {}
+            _ => return Err("the value of channel can be only stable, nightly or beta"),
         }
         match self.edition.as_str() {
-            "2015" | "2018" | "2021" => {},
-            _ => return Err("the value of edition can be only 2015, 2018 or 2021")
+            "2015" | "2018" | "2021" => {}
+            _ => return Err("the value of edition can be only 2015, 2018 or 2021"),
         }
         match self.mode.as_str() {
-            "debug" | "release" => {},
-            _ => return Err("the value of mode can be only debug or release")
+            "debug" | "release" => {}
+            _ => return Err("the value of mode can be only debug or release"),
         }
         match self.program_type.as_str() {
-            "bin" | "lib" => {},
-            _ => return Err("the value of crate type can be only bin or lib")
+            "bin" | "lib" => {}
+            _ => return Err("the value of crate type can be only bin or lib"),
         }
 
         Ok(())
