@@ -1,0 +1,17 @@
+[package]
+name = "playrs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Night Cruising"]
+license = "MIT"
+description = "Call the interface of rust playground to compile and run the rust code."
+readme = "README.md"
+repository = "https://github.com/night-cruise/playrs"
+categories = ["command-line-utilities"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+structopt = "0.3.26"
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
