@@ -8,7 +8,7 @@
 
 ## Usage
 
-Enter playrs - h on the command line to view the detailed usage commands:
+Enter `playrs - h` on the command line to view the detailed usage commands:
 ```
 Play Rust 0.1.0
 Compile and run your rust code
