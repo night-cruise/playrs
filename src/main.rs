@@ -1,9 +1,9 @@
-use structopt::StructOpt;
+use playrs::{Result, StructOpt};
 
-fn main() {
+fn main() -> Result<()> {
     let args = playrs::cli::Opt::from_args();
-    if let Err(err) = playrs::run(args) {
-        eprintln!("Application error: {}", err);
-        std::process::exit(1);
-    }
+
+    playrs::run(args)?;
+
+    Ok(())
 }

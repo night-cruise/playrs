@@ -1,67 +1,74 @@
 #![allow(non_snake_case)]
 use cli::Opt;
+use std::fmt::{Debug, Display, Formatter};
+use std::io::Write;
+use std::path::PathBuf;
+use std::sync::{Arc, Condvar, Mutex};
+use std::time::Duration;
+use std::{error, thread};
+use std::{fs, io};
 
+pub use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+pub use structopt::StructOpt;
+
+use crate::errors::{GetLockError, ParseArgsError};
+use crate::request::RequestBody;
+use crate::request::{output_response, send_request};
 
 pub mod cli;
+mod errors;
+mod request;
 
-const REQUEST_URL: &str = "https://play.rust-lang.org/execute";
+pub fn run(args: Opt) -> Result<(), anyhow::Error> {
+    let _ = args.validate_args().context("parse args failed")?;
+    let request_body = args
+        .build_request_body()
+        .context("build request body failed")?;
 
-pub fn run(args: Opt) -> Result<(), Box<dyn std::error::Error>> {
-    let _ = args.validate_args()?;
-    let request_body = args.build_request_body()?;
-    let response_body = send_request(request_body)?;
+    let done = build_done();
+    spinner("waiting", done.clone());
+
+    let response_body = send_request(request_body).context("send request failed")?;
+    done_notify_one(done).context("notify spinner thread failed")?;
     output_response(response_body);
 
     Ok(())
 }
 
-#[derive(Debug, Serialize)]
-struct RequestBody {
-    code: String,
-    channel: String,
-    edition: String,
-    mode: String,
-    crateType: String,
-    tests: bool,
-    backtrace: bool,
+fn build_done() -> Arc<(Mutex<bool>, Condvar)> {
+    Arc::new((Mutex::new(false), Condvar::new()))
 }
 
-#[derive(Debug, Deserialize)]
-struct ResponseBody {
-    success: bool,
-    stderr: String,
-    stdout: String,
+fn done_notify_one(done: Arc<(Mutex<bool>, Condvar)>) -> Result<(), GetLockError> {
+    let (lock, condvar) = &*done;
+    let mut event = lock.lock().map_err(|_| GetLockError)?;
+    *event = true;
+    condvar.notify_one();
+
+    Ok(())
 }
 
-fn send_request(request_body: RequestBody) -> reqwest::Result<ResponseBody> {
-    let client = reqwest::blocking::Client::new();
-    let resp = client
-        .post(REQUEST_URL)
-        .json(&request_body)
-        .send()?
-        .json::<ResponseBody>()?;
+fn spinner(msg: &'static str, done: Arc<(Mutex<bool>, Condvar)>) {
+    thread::spawn(move || {
+        let (lock, condvar) = &*done;
+        let mut event = lock.lock().unwrap();
 
-    Ok(resp)
-}
+        let mut stdout = io::stdout();
+        let cycle = ['\\', '|', '/', '-'].into_iter().cycle();
 
-fn output_response(response_body: ResponseBody) {
-    let ResponseBody {
-        success,
-        stderr,
-        stdout,
-    } = response_body;
+        println!();
+        for char in cycle {
+            print!("\r{} {}...", char, msg);
+            stdout.flush().unwrap();
 
-    println!(
-        "\n----------------------------------Standard Error----------------------------------\n"
-    );
-    for line in stderr.lines() {
-        println!("{}", line);
-    }
-    if success {
-        println!("\n----------------------------------Standard Output----------------------------------\n");
-        for line in stdout.lines() {
-            println!("{}", line);
+            let result = condvar
+                .wait_timeout(event, Duration::from_millis(100))
+                .unwrap();
+            event = result.0;
+            if *event {
+                break;
+            }
         }
-    }
+    });
 }

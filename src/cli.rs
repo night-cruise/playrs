@@ -1,10 +1,4 @@
-use std::fs;
-use std::io;
-use std::path::PathBuf;
-
-use crate::RequestBody;
-
-use structopt::StructOpt;
+use crate::{fs, io, ParseArgsError, PathBuf, RequestBody, StructOpt};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Play Rust", about = "Compile and run your rust code")]
@@ -62,22 +56,38 @@ impl Opt {
         })
     }
 
-    pub(crate) fn validate_args(&self) -> Result<(), &'static str> {
+    pub(crate) fn validate_args(&self) -> Result<(), ParseArgsError> {
         match self.channel.as_str() {
             "stable" | "nightly" | "beta" => {}
-            _ => return Err("the value of channel can be only stable, nightly or beta"),
+            _ => {
+                return Err(ParseArgsError::new(
+                    "the value of channel can be only stable, nightly or beta",
+                ))
+            }
         }
         match self.edition.as_str() {
             "2015" | "2018" | "2021" => {}
-            _ => return Err("the value of edition can be only 2015, 2018 or 2021"),
+            _ => {
+                return Err(ParseArgsError::new(
+                    "the value of edition can be only 2015, 2018 or 2021",
+                ))
+            }
         }
         match self.mode.as_str() {
             "debug" | "release" => {}
-            _ => return Err("the value of mode can be only debug or release"),
+            _ => {
+                return Err(ParseArgsError::new(
+                    "the value of mode can be only debug or release",
+                ))
+            }
         }
         match self.program_type.as_str() {
             "bin" | "lib" => {}
-            _ => return Err("the value of crate type can be only bin or lib"),
+            _ => {
+                return Err(ParseArgsError::new(
+                    "the value of crate type can be only bin or lib",
+                ))
+            }
         }
 
         Ok(())
