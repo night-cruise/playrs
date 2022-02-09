@@ -10,7 +10,7 @@
 
 Enter `playrs - h` on the command line to view the detailed usage commands:
 ```
-Play Rust 0.2.0
+Play Rust 0.3.0
 Compile and run your rust code
 
 USAGE:
