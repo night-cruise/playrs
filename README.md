@@ -38,8 +38,9 @@ ARGS:
 
 ## Changelog
 
-* `0.2.0`: Add validation for command line arguments.
+* `0.2.0`:  Add validation for command line arguments.
+* `0.3.0`:  Add waiting animation.
 
 ## LICENSE
 
-This project is licensed under the MIT License (see the LICENSE file for details).
+This project is licensed under the MIT License (see the [LICENSE](LICENSE) file for details).
